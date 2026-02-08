@@ -1,4 +1,14 @@
 
+// ERROR HANDLER (DEBUGGING)
+window.onerror = function (msg, url, line) {
+    alert("Error JS: " + msg + "\nLínea: " + line);
+    return false;
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    initApp();
+});
+
 // ==========================================
 // CONFIGURACIÓN SUPABASE
 // ==========================================
@@ -19,26 +29,29 @@ const store = {
 };
 
 // ==========================================
-// NAVEGACIÓN Y VISTAS
+// INIT APP
 // ==========================================
 
-document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Update Nav
-        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+function initApp() {
+    console.log("Iniciando CRM...");
 
-        // Update View
-        const viewId = `view-${btn.dataset.view}`;
-        document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
-        document.getElementById(viewId).classList.remove('hidden');
-        document.getElementById(viewId).classList.add('active');
-
-        // Refresh Data if needed
-        if (btn.dataset.view === 'vendors') renderVendors();
-        if (btn.dataset.view === 'procedures') renderProcedures();
+    // NAVEGACIÓN
+    document.querySelectorAll('.nav-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const viewId = `view-${btn.dataset.view}`;
+            document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            document.getElementById(viewId).classList.add('active');
+            if (btn.dataset.view === 'vendors') renderVendors();
+            if (btn.dataset.view === 'procedures') renderProcedures();
+        });
     });
-});
+
+    // START
+    loadData();
+}
 
 
 
