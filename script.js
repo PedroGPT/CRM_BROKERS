@@ -13,15 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
 // CONFIGURACIÓN SUPABASE
 // ==========================================
 
-const SUPABASE_URL = 'https://xhcchfehqafmovietgom.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_fdnykftr9iBH2pEZFeuH6g_YS5qzYAU';
-const supabase = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+var SUPABASE_URL = 'https://xhcchfehqafmovietgom.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_fdnykftr9iBH2pEZFeuH6g_YS5qzYAU';
+var supabase = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 // ==========================================
 // ESTADO LOCAL (Cache)
 // ==========================================
 
-const store = {
+var store = {
     brokers: [],
     vendors: [],
     procedures: [],
