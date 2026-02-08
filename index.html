@@ -6,7 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mini CRM Broker</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Iconos (opcional, usando caracteres o SVGs inline para no depender de librerías externas como FontAwesome, aunque Google Fonts para tipografía es aceptable según reglas, pero el usuario pidió "solo HTML/CSS/JS" sin librerías externas. Usaré emojis o CSS shapes para iconos para cumplir estrictamente). -->
+    <!-- Iconos -->
+    <style>
+        .active-lang {
+            transform: scale(1.2);
+            font-weight: bold;
+            border-bottom: 2px solid var(--primary);
+        }
+    </style>
 </head>
 
 <body>
@@ -14,58 +21,52 @@
     <!-- Notificaciones / Toast -->
     <div id="toast-container"></div>
 
-    <!-- SECCIÓN DE AUTENTICACIÓN (Oculta por defecto para evitar bloqueos) -->
+    <!-- SECCIÓN DE AUTENTICACIÓN -->
     <section id="auth-section" class="auth-container hidden">
         <div class="auth-card">
-            <h1 id="auth-title">Bienvenido al CRM</h1>
-            <p id="auth-message">Por favor, configura tu contraseña de acceso.</p>
+            <h1 id="auth-title" data-i18n="welcome_title">Bienvenido al CRM</h1>
+            <p id="auth-message" data-i18n="welcome_msg">Por favor, configura tu contraseña de acceso.</p>
 
             <form id="auth-form">
                 <div class="form-group">
-                    <label for="password-input">Contraseña</label>
-                    <input type="password" id="password-input" required placeholder="Tu contraseña segura">
+                    <label for="password-input">Password</label>
+                    <input type="password" id="password-input" required placeholder="***">
                 </div>
-                <!-- Solo se muestra al cambiar contraseña -->
-                <div class="form-group hidden" id="old-password-group">
-                    <label for="old-password-input">Contraseña Actual</label>
-                    <input type="password" id="old-password-input" placeholder="Contraseña actual">
-                </div>
-
-                <button type="submit" class="btn btn-primary" id="auth-btn">Guardar Contraseña</button>
+                <button type="submit" class="btn btn-primary" id="auth-btn">OK</button>
             </form>
         </div>
     </section>
 
-    <!-- SECCIÓN PRINCIPAL DEL CRM (Visible por defecto) -->
+    <!-- SECCIÓN PRINCIPAL DEL CRM -->
     <section id="app-section" class="app-container">
 
         <!-- Header -->
         <header class="app-header">
             <div class="logo">
-                <h2>🚀 Broker CRM v2.0</h2>
+                <h2>🚀 CRM v2.0</h2>
             </div>
             <div class="header-stats">
                 <div class="stat-item">
-                    <span class="stat-label">Total</span>
+                    <span class="stat-label" data-i18n="total_brokers">Total</span>
                     <span class="stat-value" id="total-brokers">0</span>
                 </div>
-                <!-- Se pueden añadir más contadores aquí dinámicamente -->
             </div>
             <div class="header-actions">
-                <button class="btn btn-secondary" id="export-btn" title="Exportar Backup">💾 Exportar</button>
-                <button class="btn btn-secondary" id="import-btn-trigger" title="Importar Backup">📂 Importar</button>
+                <button class="btn btn-secondary" id="export-btn" title="Exportar Backup" data-i18n="export">💾
+                    Exportar</button>
+                <button class="btn btn-secondary" id="import-btn-trigger" title="Importar Backup" data-i18n="import">📂
+                    Importar</button>
                 <input type="file" id="import-file" accept=".json" style="display: none;">
 
                 <div class="lang-toggle">
-                    <button class="icon-btn" onclick="setLanguage('es')">🇪🇸</button>
-                    <button class="icon-btn" onclick="setLanguage('en')">🇺🇸</button>
+                    <button class="icon-btn lang-btn" id="lang-es" onclick="setLanguage('es')">🇪🇸</button>
+                    <button class="icon-btn lang-btn" id="lang-en" onclick="setLanguage('en')">🇺🇸</button>
                 </div>
 
                 <div class="dropdown">
-                    <button class="btn btn-outline" id="user-menu-btn">👤 Cuenta</button>
+                    <button class="btn btn-outline" id="user-menu-btn" data-i18n="account">👤 Cuenta</button>
                     <div class="dropdown-content hidden" id="user-menu">
-                        <a href="#" id="change-pass-btn">Cambiar Contraseña</a>
-                        <a href="#" id="logout-btn">Cerrar Sesión</a>
+                        <a href="#" id="logout-btn" data-i18n="logout">Cerrar Sesión</a>
                     </div>
                 </div>
             </div>
@@ -73,9 +74,9 @@
 
         <!-- Navigation Tabs -->
         <nav class="app-nav">
-            <button class="nav-item active" data-view="dashboard">📊 Tablero</button>
-            <button class="nav-item" data-view="vendors">🏢 Vendedores</button>
-            <button class="nav-item" data-view="procedures">📄 Procedimientos</button>
+            <button class="nav-item active" data-view="dashboard" data-i18n="dashboard">📊 Tablero</button>
+            <button class="nav-item" data-view="vendors" data-i18n="vendors">🏢 Sellers</button>
+            <button class="nav-item" data-view="procedures" data-i18n="procedures">📄 Procedimientos</button>
         </nav>
 
         <!-- VIEW: DASHBOARD (KANBAN) -->
@@ -84,37 +85,26 @@
             <!-- Toolbar -->
             <div class="toolbar">
                 <div class="search-filter">
-                    <input type="text" id="search-input" placeholder="🔍 Buscar por nombre, empresa...">
-                    <select id="filter-status">
-                        <option value="all">Todos los Estados</option>
-                        <option value="nuevo">Nuevo</option>
-                        <option value="contactado">Contactado</option>
-                        <option value="procedimientos">Procedimientos</option>
-                        <option value="cerrado">Cerrado</option>
-                        <option value="perdido">Perdido</option>
-                    </select>
+                    <input type="text" id="search-input" placeholder="🔍 Buscar...">
                 </div>
-                <button class="btn btn-primary" id="add-broker-btn">+ Nuevo Broker</button>
+                <button class="btn btn-primary" id="add-broker-btn" data-i18n="new_broker">+ Nuevo Broker</button>
             </div>
 
             <!-- Kanban Board Area -->
             <main class="board" id="kanban-board">
-                <!-- Las columnas se generarán dinámicamente o estarán estáticas aquí -->
                 <!-- Columna: Nuevo -->
                 <div class="column" data-status="nuevo" ondrop="drop(event)" ondragover="allowDrop(event)">
                     <div class="column-header status-nuevo">
-                        <h3>Nuevo</h3>
+                        <h3 data-i18n="status_nuevo">Nuevo</h3>
                         <span class="count" id="count-nuevo">0</span>
                     </div>
-                    <div class="column-content" id="list-nuevo">
-                        <!-- Cards van aquí -->
-                    </div>
+                    <div class="column-content" id="list-nuevo"></div>
                 </div>
 
                 <!-- Columna: Contactado -->
                 <div class="column" data-status="contactado" ondrop="drop(event)" ondragover="allowDrop(event)">
                     <div class="column-header status-contactado">
-                        <h3>Contactado</h3>
+                        <h3 data-i18n="status_contactado">Contactado</h3>
                         <span class="count" id="count-contactado">0</span>
                     </div>
                     <div class="column-content" id="list-contactado"></div>
@@ -123,7 +113,7 @@
                 <!-- Columna: Procedimientos -->
                 <div class="column" data-status="procedimientos" ondrop="drop(event)" ondragover="allowDrop(event)">
                     <div class="column-header status-procedimientos">
-                        <h3>Procedimientos</h3>
+                        <h3 data-i18n="status_procedimientos">Procedimientos</h3>
                         <span class="count" id="count-procedimientos">0</span>
                     </div>
                     <div class="column-content" id="list-procedimientos"></div>
@@ -132,7 +122,7 @@
                 <!-- Columna: Cerrado -->
                 <div class="column" data-status="cerrado" ondrop="drop(event)" ondragover="allowDrop(event)">
                     <div class="column-header status-cerrado">
-                        <h3>Cerrado</h3>
+                        <h3 data-i18n="status_cerrado">Cerrado</h3>
                         <span class="count" id="count-cerrado">0</span>
                     </div>
                     <div class="column-content" id="list-cerrado"></div>
@@ -141,19 +131,19 @@
                 <!-- Columna: Perdido -->
                 <div class="column" data-status="perdido" ondrop="drop(event)" ondragover="allowDrop(event)">
                     <div class="column-header status-perdido">
-                        <h3>Perdido</h3>
+                        <h3 data-i18n="status_perdido">Perdido</h3>
                         <span class="count" id="count-perdido">0</span>
                     </div>
                     <div class="column-content" id="list-perdido"></div>
                 </div>
             </main>
-        </div> <!-- End view-dashboard -->
+        </div>
 
         <!-- VIEW: VENDORS -->
         <div id="view-vendors" class="view-container hidden">
             <div class="toolbar">
-                <input type="text" id="search-vendor" placeholder="🔍 Buscar vendedor...">
-                <button class="btn btn-primary" id="add-vendor-btn">+ Nuevo Vendedor</button>
+                <input type="text" id="search-vendor" placeholder="🔍 Buscar...">
+                <button class="btn btn-primary" id="add-vendor-btn" data-i18n="new_vendor">+ Nuevo Seller</button>
             </div>
             <div class="grid-layout" id="vendors-list">
                 <!-- Vendor Cards Generated via JS -->
@@ -164,17 +154,15 @@
         <div id="view-procedures" class="view-container hidden">
             <div class="toolbar">
                 <div class="search-filter">
-                    <input type="text" id="search-procedure" placeholder="🔍 Buscar procedimiento...">
+                    <input type="text" id="search-procedure" placeholder="🔍 Buscar...">
                     <select id="filter-procedure-vendor">
-                        <option value="all">Todos los Vendedores</option>
-                        <!-- Options generated via JS -->
+                        <option value="all">All Sellers</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" id="add-procedure-btn">+ Nuevo Procedimiento</button>
+                <button class="btn btn-primary" id="add-procedure-btn" data-i18n="new_procedure">+ Nuevo
+                    Procedimiento</button>
             </div>
-            <div class="list-layout" id="procedures-list">
-                <!-- Procedure items Generated via JS -->
-            </div>
+            <div class="list-layout" id="procedures-list"></div>
         </div>
     </section>
 
@@ -182,33 +170,33 @@
     <div id="broker-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2 id="modal-title">Nuevo Broker</h2>
+            <h2 id="modal-title" data-i18n="modal_new_broker">Nuevo Broker</h2>
             <form id="broker-form">
                 <input type="hidden" id="broker-id">
 
                 <div class="form-group">
-                    <label for="broker-name">Nombre *</label>
-                    <input type="text" id="broker-name" required placeholder="Nombre completo">
+                    <label for="broker-name" data-i18n="lbl_name">Nombre *</label>
+                    <input type="text" id="broker-name" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="broker-company">Empresa</label>
-                    <input type="text" id="broker-company" placeholder="Nombre de la empresa">
+                    <label for="broker-company" data-i18n="lbl_company">Empresa</label>
+                    <input type="text" id="broker-company">
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="broker-email">Email</label>
-                        <input type="email" id="broker-email" placeholder="correo@ejemplo.com">
+                        <label for="broker-email" data-i18n="lbl_email">Email</label>
+                        <input type="email" id="broker-email">
                     </div>
                     <div class="form-group">
-                        <label for="broker-whatsapp">WhatsApp</label>
-                        <input type="tel" id="broker-whatsapp" placeholder="+34 600 000 000">
+                        <label for="broker-whatsapp" data-i18n="lbl_whatsapp">WhatsApp</label>
+                        <input type="tel" id="broker-whatsapp">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="broker-status">Estado *</label>
+                    <label for="broker-status" data-i18n="lbl_status">Estado *</label>
                     <select id="broker-status" required>
                         <option value="nuevo">Nuevo</option>
                         <option value="contactado">Contactado</option>
@@ -219,13 +207,14 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="broker-notes">Notas</label>
-                    <textarea id="broker-notes" rows="3" placeholder="Detalles importantes..."></textarea>
+                    <label for="broker-notes" data-i18n="lbl_notes">Notas</label>
+                    <textarea id="broker-notes" rows="3"></textarea>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-outline" id="cancel-broker-btn">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-outline close-modal-btn"
+                        data-i18n="btn_cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn_save">Guardar</button>
                 </div>
             </form>
         </div>
@@ -234,11 +223,10 @@
     <!-- MODAL CONFIRMACIÓN BORRAR -->
     <div id="delete-modal" class="modal hidden">
         <div class="modal-content small-modal">
-            <h3>¿Estás seguro?</h3>
-            <p>Esta acción no se puede deshacer.</p>
+            <h3 data-i18n="btn_delete">Eliminar</h3>
             <div class="modal-actions">
-                <button class="btn btn-outline" id="cancel-delete-btn">Cancelar</button>
-                <button class="btn btn-danger" id="confirm-delete-btn">Eliminar</button>
+                <button class="btn btn-outline" id="cancel-delete-btn" data-i18n="btn_cancel">Cancelar</button>
+                <button class="btn btn-danger" id="confirm-delete-btn" data-i18n="btn_delete">Eliminar</button>
             </div>
         </div>
     </div>
@@ -247,32 +235,33 @@
     <div id="vendor-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2 id="vendor-modal-title">Nuevo Vendedor</h2>
+            <h2 id="vendor-modal-title" data-i18n="modal_new_vendor">Nuevo Seller</h2>
             <form id="vendor-form">
                 <input type="hidden" id="vendor-id">
                 <div class="form-group">
-                    <label>Nombre *</label>
-                    <input type="text" id="vendor-name" required placeholder="Ej: Allianz, Sanitas...">
+                    <label data-i18n="lbl_name">Nombre *</label>
+                    <input type="text" id="vendor-name" required>
                 </div>
                 <div class="form-group">
-                    <label>Categoría</label>
-                    <input type="text" id="vendor-category" placeholder="Ej: Salud, Vida, Autos">
+                    <label data-i18n="lbl_category">Categoría</label>
+                    <input type="text" id="vendor-category">
                 </div>
                 <div class="form-group">
-                    <label>Contacto / Email</label>
-                    <input type="text" id="vendor-contact" placeholder="soporte@empresa.com">
+                    <label data-i18n="lbl_contact">Contacto / Email</label>
+                    <input type="text" id="vendor-contact">
                 </div>
                 <div class="form-group">
-                    <label>Web / Portal</label>
-                    <input type="url" id="vendor-website" placeholder="https://...">
+                    <label data-i18n="lbl_web">Web / Portal</label>
+                    <input type="url" id="vendor-website">
                 </div>
                 <div class="form-group">
-                    <label>Mandato de Ventas</label>
-                    <input type="text" id="vendor-mandate" placeholder="Referencia o Nombre del Mandato">
+                    <label data-i18n="lbl_mandate">Mandato de Ventas</label>
+                    <input type="text" id="vendor-mandate">
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-outline close-modal-btn"
+                        data-i18n="btn_cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn_save">Guardar</button>
                 </div>
             </form>
         </div>
@@ -282,31 +271,31 @@
     <div id="procedure-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-modal">&times;</span>
-            <h2 id="procedure-modal-title">Nuevo Procedimiento</h2>
+            <h2 id="procedure-modal-title" data-i18n="modal_new_procedure">Nuevo Procedimiento</h2>
             <form id="procedure-form">
                 <input type="hidden" id="procedure-id">
 
                 <div class="form-group">
-                    <label>Título *</label>
-                    <input type="text" id="proc-title" required placeholder="Ej: Alta de Póliza">
+                    <label data-i18n="lbl_title">Título *</label>
+                    <input type="text" id="proc-title" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Vendedor *</label>
+                    <label data-i18n="lbl_vendor">Vendedor *</label>
                     <select id="proc-vendor" required>
-                        <option value="">Selecciona un vendedor...</option>
+                        <option value="">...</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Contenido / Pasos</label>
-                    <textarea id="proc-content" rows="6"
-                        placeholder="Describe los pasos del procedimiento..."></textarea>
+                    <label data-i18n="lbl_content">Contenido / Pasos</label>
+                    <textarea id="proc-content" rows="6"></textarea>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-outline close-modal-btn"
+                        data-i18n="btn_cancel">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" data-i18n="btn_save">Guardar</button>
                 </div>
             </form>
         </div>
@@ -314,7 +303,7 @@
 
     <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=2.2"></script>
+    <script src="script.js?v=2.3"></script>
 </body>
 
 </html>

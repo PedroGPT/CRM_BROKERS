@@ -46,16 +46,50 @@ const translations = {
         logout: "Cerrar Sesión",
         welcome_title: "Bienvenido al CRM",
         welcome_msg: "Por favor, introduce tu clave de administrador.",
+
+        // Cards & Lists
         mandate: "Mandato",
         category: "Categoría",
         contact: "Contacto",
         web: "Web",
-        // Kanban
+        empty_list: "No hay elementos para mostrar.",
+
+        // Kanban Headers
         status_nuevo: "Nuevo",
         status_contactado: "Contactado",
         status_procedimientos: "Procedimientos",
         status_cerrado: "Cerrado",
-        status_perdido: "Perdido"
+        status_perdido: "Perdido",
+
+        // Modals & Forms
+        modal_new_broker: "Nuevo Broker",
+        modal_edit_broker: "Editar Broker",
+        modal_new_vendor: "Nuevo Seller",
+        modal_edit_vendor: "Editar Seller",
+        modal_new_procedure: "Nuevo Procedimiento",
+
+        lbl_name: "Nombre *",
+        lbl_company: "Empresa",
+        lbl_email: "Email",
+        lbl_whatsapp: "WhatsApp",
+        lbl_status: "Estado *",
+        lbl_notes: "Notas",
+        lbl_category: "Categoría",
+        lbl_contact: "Contacto / Email",
+        lbl_web: "Web / Portal",
+        lbl_mandate: "Mandato de Ventas",
+        lbl_title: "Título *",
+        lbl_vendor: "Vendedor *",
+        lbl_content: "Contenido / Pasos",
+
+        btn_cancel: "Cancelar",
+        btn_save: "Guardar",
+        btn_delete: "Eliminar",
+
+        // Toasts
+        msg_vendor_updated: "Seller actualizado",
+        msg_vendor_created: "Seller creado",
+        msg_error: "Error en la operación"
     },
     en: {
         dashboard: "📊 Dashboard",
@@ -73,16 +107,50 @@ const translations = {
         logout: "Logout",
         welcome_title: "Welcome to CRM",
         welcome_msg: "Please enter your admin password.",
+
+        // Cards & Lists
         mandate: "Mandate",
         category: "Category",
         contact: "Contact",
         web: "Web",
-        // Kanban
+        empty_list: "No items to display.",
+
+        // Kanban Headers
         status_nuevo: "New",
         status_contactado: "Contacted",
         status_procedimientos: "Procedures",
         status_cerrado: "Closed",
-        status_perdido: "Lost"
+        status_perdido: "Lost",
+
+        // Modals & Forms
+        modal_new_broker: "New Broker",
+        modal_edit_broker: "Edit Broker",
+        modal_new_vendor: "New Seller",
+        modal_edit_vendor: "Edit Seller",
+        modal_new_procedure: "New Procedure",
+
+        lbl_name: "Name *",
+        lbl_company: "Company",
+        lbl_email: "Email",
+        lbl_whatsapp: "WhatsApp",
+        lbl_status: "Status *",
+        lbl_notes: "Notes",
+        lbl_category: "Category",
+        lbl_contact: "Contact / Email",
+        lbl_web: "Web / Portal",
+        lbl_mandate: "Sales Mandate",
+        lbl_title: "Title *",
+        lbl_vendor: "Seller *",
+        lbl_content: "Content / Steps",
+
+        btn_cancel: "Cancel",
+        btn_save: "Save",
+        btn_delete: "Delete",
+
+        // Toasts
+        msg_vendor_updated: "Seller updated",
+        msg_vendor_created: "Seller created",
+        msg_error: "Operation failed"
     }
 };
 
@@ -91,40 +159,36 @@ function t(key) {
 }
 
 function updateTranslations() {
-    // Nav
-    document.querySelector('[data-view="dashboard"]').innerText = t('dashboard');
-    document.querySelector('[data-view="vendors"]').innerText = t('vendors');
-    document.querySelector('[data-view="procedures"]').innerText = t('procedures');
+    // 1. Static Text via data-i18n
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[store.lang][key]) {
+            // Preserve icons if they exist in HTML and not in translation? 
+            // For now, simpler to just replace text.
+            // If the element has children (like buttons with icons), we might need care.
+            // But our keys mostly cover full text.
+            el.innerText = t(key);
+        }
+    });
 
-    // Buttons
-    document.getElementById('add-broker-btn').innerText = t('new_broker');
-    document.getElementById('add-vendor-btn').innerText = t('new_vendor');
-    document.getElementById('add-procedure-btn').innerText = t('new_procedure');
-    document.getElementById('export-btn').innerHTML = t('export');
-    document.getElementById('import-btn-trigger').innerHTML = t('import');
-    document.getElementById('user-menu-btn').innerHTML = t('account');
-    document.getElementById('logout-btn').innerText = t('logout');
-
-    // Headers & Labels
-    document.querySelector('.stat-label').innerText = t('total_brokers');
-
-    // Kanban Headers
-    document.querySelector('.status-nuevo h3').innerText = t('status_nuevo');
-    document.querySelector('.status-contactado h3').innerText = t('status_contactado');
-    document.querySelector('.status-procedimientos h3').innerText = t('status_procedimientos');
-    document.querySelector('.status-cerrado h3').innerText = t('status_cerrado');
-    document.querySelector('.status-perdido h3').innerText = t('status_perdido');
-
-    // Placeholders
+    // 2. Placeholders
     document.getElementById('search-input').placeholder = t('search_placeholder');
     document.getElementById('search-vendor').placeholder = t('search_placeholder');
     document.getElementById('search-procedure').placeholder = t('search_placeholder');
+
+    // 3. Highlight Active Flag
+    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active-lang'));
+    document.getElementById(`lang-${store.lang}`).classList.add('active-lang');
 }
 
 function setLanguage(lang) {
     store.lang = lang;
     updateTranslations();
     localStorage.setItem('crm_lang', lang);
+    // Re-render lists to translate dynamic content
+    renderVendors();
+    renderProcedures();
+    renderDashboard();
 }
 
 // ==========================================
@@ -294,8 +358,8 @@ function renderVendors() {
                 ${v.category ? `<span class="vendor-category">${v.category}</span>` : ''}
             </div>
             <div class="card-details">
-                ${v.contact_info ? `✉️ ${v.contact_info}<br>` : ''}
-                ${v.website ? `🌐 <a href="${v.website}" target="_blank">Web</a>` : ''}
+                ${v.contact_info ? '✉️ ' + v.contact_info + '<br>' : ''}
+                ${v.website ? `🌐 <a href="${v.website}" target="_blank">${t('web')}</a>` : ''}
             </div>
             ${isAdmin ? `<div class="card-actions" style="margin-top:0.5rem; justify-content:flex-end;">
                 <button class="icon-btn edit-btn" onclick="editVendor('${v.id}')">✏️</button>
@@ -305,20 +369,24 @@ function renderVendors() {
     });
 
     if (container.children.length === 0) {
-        container.innerHTML = `<div class="empty-state"><p>No hay elementos para mostrar.</p></div>`;
+        container.innerHTML = `<div class="empty-state"><p>${t('empty_list')}</p></div>`;
     }
 }
 
 document.getElementById('add-vendor-btn').addEventListener('click', () => {
     document.getElementById('vendor-form').reset();
     document.getElementById('vendor-id').value = '';
-    document.getElementById('vendor-modal-title').innerText = 'Nuevo Vendedor';
+    document.getElementById('vendor-modal-title').innerText = t('modal_new_vendor');
     document.getElementById('vendor-modal').classList.remove('hidden');
 });
 
 window.editVendor = (id) => {
-    const v = store.vendors.find(item => item.id === id);
-    if (!v) return;
+    console.log("Editando vendor ID:", id); // DEBUG
+    const v = store.vendors.find(item => item.id == id); // == for loose string/number comparison
+    if (!v) {
+        console.error("Vendor not found for ID:", id);
+        return;
+    }
     document.getElementById('vendor-id').value = v.id;
     document.getElementById('vendor-name').value = v.name;
     document.getElementById('vendor-category').value = v.category || '';
@@ -326,7 +394,7 @@ window.editVendor = (id) => {
     document.getElementById('vendor-website').value = v.website || '';
     document.getElementById('vendor-mandate').value = v.sales_mandate || '';
 
-    document.getElementById('vendor-modal-title').innerText = 'Editar Vendedor';
+    document.getElementById('vendor-modal-title').innerText = t('modal_edit_vendor');
     document.getElementById('vendor-modal').classList.remove('hidden');
 };
 
@@ -345,17 +413,17 @@ document.getElementById('vendor-form').addEventListener('submit', async (e) => {
         // UPDATE
         const { error } = await supabase.from('vendors').update(dataObj).eq('id', id);
         if (!error) {
-            const index = store.vendors.findIndex(v => v.id === id);
+            const index = store.vendors.findIndex(v => v.id == id);
             store.vendors[index] = { ...store.vendors[index], ...dataObj };
-            showToast('Vendedor actualizado', 'success');
-        } else showToast('Error al actualizar', 'error');
+            showToast(t('msg_vendor_updated'), 'success');
+        } else showToast(t('msg_error'), 'error');
     } else {
         // CREATE
         const { data, error } = await supabase.from('vendors').insert([dataObj]).select();
         if (!error) {
             store.vendors.push(data[0]);
-            showToast('Vendedor creado', 'success');
-        } else showToast('Error al crear', 'error');
+            showToast(t('msg_vendor_created'), 'success');
+        } else showToast(t('msg_error'), 'error');
     }
     renderVendors();
     document.getElementById('vendor-modal').classList.add('hidden');
