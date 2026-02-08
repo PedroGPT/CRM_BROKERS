@@ -31,24 +31,81 @@ var store = {
 
 const translations = {
     es: {
-        dashboard: "Tablero",
-        vendors: "Vendedores",
-        procedures: "Procedimientos",
+        dashboard: "📊 Tablero",
+        vendors: "🏢 Vendedores",
+        procedures: "📄 Procedimientos",
         new_broker: "+ Nuevo Broker",
+        new_vendor: "+ Nuevo Vendedor",
+        new_procedure: "+ Nuevo Procedimiento",
         search_placeholder: "🔍 Buscar...",
-        // ... se pueden añadir más
+        total_brokers: "Total Brokers",
+        export: "💾 Exportar",
+        import: "📂 Importar",
+        account: "👤 Cuenta",
+        login_btn: "🔑 Acceso Admin",
+        logout: "Cerrar Sesión",
+        welcome_title: "Bienvenido al CRM",
+        welcome_msg: "Por favor, introduce tu clave de administrador.",
+        mandate: "Mandato",
+        category: "Categoría",
+        contact: "Contacto",
+        web: "Web"
     },
     en: {
-        dashboard: "Dashboard",
-        vendors: "Vendors",
-        procedures: "Procedures",
+        dashboard: "📊 Dashboard",
+        vendors: "🏢 Vendors",
+        procedures: "📄 Procedures",
         new_broker: "+ New Broker",
+        new_vendor: "+ New Vendor",
+        new_procedure: "+ New Procedure",
         search_placeholder: "🔍 Search...",
+        total_brokers: "Total Brokers",
+        export: "💾 Export",
+        import: "📂 Import",
+        account: "👤 Account",
+        login_btn: "🔑 Admin Login",
+        logout: "Logout",
+        welcome_title: "Welcome to CRM",
+        welcome_msg: "Please enter your admin password.",
+        mandate: "Mandate",
+        category: "Category",
+        contact: "Contact",
+        web: "Web"
     }
 };
 
 function t(key) {
     return translations[store.lang][key] || key;
+}
+
+function updateTranslations() {
+    // Nav
+    document.querySelector('[data-view="dashboard"]').innerText = t('dashboard');
+    document.querySelector('[data-view="vendors"]').innerText = t('vendors');
+    document.querySelector('[data-view="procedures"]').innerText = t('procedures');
+
+    // Buttons
+    document.getElementById('add-broker-btn').innerText = t('new_broker');
+    document.getElementById('add-vendor-btn').innerText = t('new_vendor');
+    document.getElementById('add-procedure-btn').innerText = t('new_procedure');
+    document.getElementById('export-btn').innerHTML = t('export');
+    document.getElementById('import-btn-trigger').innerHTML = t('import');
+    document.getElementById('user-menu-btn').innerHTML = t('account');
+    document.getElementById('logout-btn').innerText = t('logout');
+
+    // Headers & Labels
+    document.querySelector('.stat-label').innerText = t('total_brokers');
+
+    // Placeholders
+    document.getElementById('search-input').placeholder = t('search_placeholder');
+    document.getElementById('search-vendor').placeholder = t('search_placeholder');
+    document.getElementById('search-procedure').placeholder = t('search_placeholder');
+}
+
+function setLanguage(lang) {
+    store.lang = lang;
+    updateTranslations();
+    localStorage.setItem('crm_lang', lang);
 }
 
 // ==========================================
@@ -71,6 +128,10 @@ function initApp() {
             if (btn.dataset.view === 'procedures') renderProcedures();
         });
     });
+
+    // LOAD LANG
+    const savedLang = localStorage.getItem('crm_lang') || 'es';
+    setLanguage(savedLang);
 
     // START
     loadData();
@@ -95,16 +156,24 @@ async function loadData() {
         // Check Local Session
         const localSession = localStorage.getItem('crm_session');
         if (localSession === 'active') {
-            store.session = { active: true, role: 'admin' }; // admin123 is Admin
+            store.session = { active: true, role: 'admin' };
             setupAdminView();
         } else {
-            // Guest/Broker Mode
+            // Broker/Guest Mode
             store.session = { active: true, role: 'broker' };
-            // Brokers see tabs but NOT add buttons
             document.querySelectorAll('.nav-item').forEach(el => el.style.display = 'inline-block');
+
+            // Show "Login" button for Brokers to become Admins
+            const loginBtn = document.createElement('button');
+            loginBtn.className = 'btn btn-outline';
+            loginBtn.innerText = t('login_btn');
+            loginBtn.onclick = () => {
+                document.getElementById('app-section').classList.add('hidden');
+                document.getElementById('auth-section').classList.remove('hidden');
+            };
+            document.querySelector('.header-actions').prepend(loginBtn);
         }
 
-        // Always show dashboard first
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
         renderDashboard();
