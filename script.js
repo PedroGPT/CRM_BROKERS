@@ -151,6 +151,67 @@ const translations = {
         msg_vendor_updated: "Seller updated",
         msg_vendor_created: "Seller created",
         msg_error: "Operation failed"
+    },
+    zh: {
+        dashboard: "📊 看板",
+        vendors: "🏢 卖家",
+        procedures: "📄 程序",
+        new_broker: "+ 新经纪人",
+        new_vendor: "+ 新卖家",
+        new_procedure: "+ 新程序",
+        search_placeholder: "🔍 搜索...",
+        total_brokers: "经纪人总数",
+        export: "💾 导出",
+        import: "📂 导入",
+        account: "👤 帐户",
+        login_btn: "🔑 管理员登录",
+        logout: "登出",
+        welcome_title: "欢迎来到 CRM",
+        welcome_msg: "请输入您的管理员密码。",
+
+        // Cards & Lists
+        mandate: "授权书",
+        category: "类别",
+        contact: "联系",
+        web: "网络",
+        empty_list: "没有可显示的项目。",
+
+        // Kanban Headers
+        status_nuevo: "新",
+        status_contactado: "已联系",
+        status_procedimientos: "程序",
+        status_cerrado: "已关闭",
+        status_perdido: "丢失",
+
+        // Modals & Forms
+        modal_new_broker: "新经纪人",
+        modal_edit_broker: "编辑经纪人",
+        modal_new_vendor: "新卖家",
+        modal_edit_vendor: "编辑卖家",
+        modal_new_procedure: "新程序",
+
+        lbl_name: "姓名 *",
+        lbl_company: "公司",
+        lbl_email: "电子邮件",
+        lbl_whatsapp: "WhatsApp",
+        lbl_status: "状态 *",
+        lbl_notes: "笔记",
+        lbl_category: "类别",
+        lbl_contact: "联系 / 电子邮件",
+        lbl_web: "网络 / 门户",
+        lbl_mandate: "销售授权书",
+        lbl_title: "标题 *",
+        lbl_vendor: "卖家 *",
+        lbl_content: "内容 / 步骤",
+
+        btn_cancel: "取消",
+        btn_save: "保存",
+        btn_delete: "删除",
+
+        // Toasts
+        msg_vendor_updated: "卖家已更新",
+        msg_vendor_created: "卖家已创建",
+        msg_error: "操作失败"
     }
 };
 
