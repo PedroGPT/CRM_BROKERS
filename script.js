@@ -237,9 +237,9 @@ function updateTranslations() {
     document.getElementById('search-vendor').placeholder = t('search_placeholder');
     document.getElementById('search-procedure').placeholder = t('search_placeholder');
 
-    // 3. Highlight Active Flag
-    document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active-lang'));
-    document.getElementById(`lang-${store.lang}`).classList.add('active-lang');
+    // 3. Sync Selector
+    const selector = document.getElementById('lang-selector');
+    if (selector) selector.value = store.lang;
 }
 
 function setLanguage(lang) {
