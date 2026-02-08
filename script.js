@@ -40,13 +40,7 @@ document.querySelectorAll('.nav-item').forEach(btn => {
     });
 });
 
-// ==========================================
-// DATA FETCHING (SUPABASE)
-// ==========================================
 
-// ==========================================
-// DATA FETCHING (SUPABASE)
-// ==========================================
 
 async function loadData() {
     if (!supabase) return;
