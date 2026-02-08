@@ -43,7 +43,17 @@ document.querySelectorAll('.nav-item').forEach(btn => {
 
 
 async function loadData() {
-    if (!supabase) return;
+    // FORCE LOGIN FOR DEBUGGING (Always run this first)
+    store.session = { active: true };
+    document.getElementById('auth-section').classList.add('hidden');
+    document.getElementById('app-section').classList.remove('hidden');
+
+    if (!supabase) {
+        console.warn("Supabase not initialized (Network/CDN issue?)");
+        showToast("Modo Offline (Error conexión)", "error");
+        renderDashboard();
+        return;
+    }
 
     try {
         // Load Vendors
@@ -58,11 +68,6 @@ async function loadData() {
         const { data: brokers } = await supabase.from('brokers').select('*');
         if (brokers) store.brokers = brokers;
 
-        // Load Config (Simulated for now, as we don't have a settings table yet)
-        // FORCE LOGIN FOR DEBUGGING
-        store.session = { active: true };
-        document.getElementById('auth-section').classList.add('hidden');
-        document.getElementById('app-section').classList.remove('hidden');
         renderDashboard();
 
     } catch (err) {
