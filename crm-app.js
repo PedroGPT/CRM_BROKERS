@@ -461,6 +461,8 @@ window.editVendor = (id) => {
 
 document.getElementById('vendor-form').addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log("Intentando guardar vendedor..."); // Debug
+
     const id = document.getElementById('vendor-id').value;
     const name = document.getElementById('vendor-name').value;
     const category = document.getElementById('vendor-category').value;
@@ -469,25 +471,46 @@ document.getElementById('vendor-form').addEventListener('submit', async (e) => {
     const sales_mandate = document.getElementById('vendor-mandate').value;
 
     const dataObj = { name, category, contact_info, website, sales_mandate };
+    console.log("Payload:", dataObj);
 
-    if (id) {
-        // UPDATE
-        const { error } = await supabase.from('vendors').update(dataObj).eq('id', id);
-        if (!error) {
+    try {
+        if (id) {
+            // UPDATE
+            const { error } = await supabase.from('vendors').update(dataObj).eq('id', id);
+            if (error) {
+                console.error("Supabase Error (Update):", error);
+                alert("Error al actualizar: " + error.message);
+                return;
+            }
+
             const index = store.vendors.findIndex(v => v.id == id);
-            store.vendors[index] = { ...store.vendors[index], ...dataObj };
+            if (index !== -1) {
+                store.vendors[index] = { ...store.vendors[index], ...dataObj };
+            }
             showToast(t('msg_vendor_updated'), 'success');
-        } else showToast(t('msg_error'), 'error');
-    } else {
-        // CREATE
-        const { data, error } = await supabase.from('vendors').insert([dataObj]).select();
-        if (!error) {
-            store.vendors.push(data[0]);
-            showToast(t('msg_vendor_created'), 'success');
-        } else showToast(t('msg_error'), 'error');
+
+        } else {
+            // CREATE
+            const { data, error } = await supabase.from('vendors').insert([dataObj]).select();
+            if (error) {
+                console.error("Supabase Error (Create):", error);
+                alert("Error al crear: " + error.message);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                store.vendors.push(data[0]);
+                showToast(t('msg_vendor_created'), 'success');
+            }
+        }
+
+        renderVendors();
+        document.getElementById('vendor-modal').classList.add('hidden');
+
+    } catch (err) {
+        console.error("Catch Error:", err);
+        alert("Error inesperado: " + err.message);
     }
-    renderVendors();
-    document.getElementById('vendor-modal').classList.add('hidden');
 });
 
 document.getElementById('search-vendor').addEventListener('input', renderVendors);
