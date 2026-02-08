@@ -66,72 +66,111 @@
             </div>
         </header>
 
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div class="search-filter">
-                <input type="text" id="search-input" placeholder="🔍 Buscar por nombre, empresa...">
-                <select id="filter-status">
-                    <option value="all">Todos los Estados</option>
-                    <option value="nuevo">Nuevo</option>
-                    <option value="contactado">Contactado</option>
-                    <option value="procedimientos">Procedimientos</option>
-                    <option value="cerrado">Cerrado</option>
-                    <option value="perdido">Perdido</option>
-                </select>
+        <!-- Navigation Tabs -->
+        <nav class="app-nav">
+            <button class="nav-item active" data-view="dashboard">📊 Tablero</button>
+            <button class="nav-item" data-view="vendors">🏢 Vendedores</button>
+            <button class="nav-item" data-view="procedures">📄 Procedimientos</button>
+        </nav>
+
+        <!-- VIEW: DASHBOARD (KANBAN) -->
+        <div id="view-dashboard" class="view-container active">
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-filter">
+                    <input type="text" id="search-input" placeholder="🔍 Buscar por nombre, empresa...">
+                    <select id="filter-status">
+                        <option value="all">Todos los Estados</option>
+                        <option value="nuevo">Nuevo</option>
+                        <option value="contactado">Contactado</option>
+                        <option value="procedimientos">Procedimientos</option>
+                        <option value="cerrado">Cerrado</option>
+                        <option value="perdido">Perdido</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" id="add-broker-btn">+ Nuevo Broker</button>
             </div>
-            <button class="btn btn-primary" id="add-broker-btn">+ Nuevo Broker</button>
+
+            <!-- Kanban Board Area -->
+            <main class="board" id="kanban-board">
+                <!-- Las columnas se generarán dinámicamente o estarán estáticas aquí -->
+                <!-- Columna: Nuevo -->
+                <div class="column" data-status="nuevo" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header status-nuevo">
+                        <h3>Nuevo</h3>
+                        <span class="count" id="count-nuevo">0</span>
+                    </div>
+                    <div class="column-content" id="list-nuevo">
+                        <!-- Cards van aquí -->
+                    </div>
+                </div>
+
+                <!-- Columna: Contactado -->
+                <div class="column" data-status="contactado" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header status-contactado">
+                        <h3>Contactado</h3>
+                        <span class="count" id="count-contactado">0</span>
+                    </div>
+                    <div class="column-content" id="list-contactado"></div>
+                </div>
+
+                <!-- Columna: Procedimientos -->
+                <div class="column" data-status="procedimientos" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header status-procedimientos">
+                        <h3>Procedimientos</h3>
+                        <span class="count" id="count-procedimientos">0</span>
+                    </div>
+                    <div class="column-content" id="list-procedimientos"></div>
+                </div>
+
+                <!-- Columna: Cerrado -->
+                <div class="column" data-status="cerrado" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header status-cerrado">
+                        <h3>Cerrado</h3>
+                        <span class="count" id="count-cerrado">0</span>
+                    </div>
+                    <div class="column-content" id="list-cerrado"></div>
+                </div>
+
+                <!-- Columna: Perdido -->
+                <div class="column" data-status="perdido" ondrop="drop(event)" ondragover="allowDrop(event)">
+                    <div class="column-header status-perdido">
+                        <h3>Perdido</h3>
+                        <span class="count" id="count-perdido">0</span>
+                    </div>
+                    <div class="column-content" id="list-perdido"></div>
+                </div>
+            </main>
+        </div> <!-- End view-dashboard -->
+
+        <!-- VIEW: VENDORS -->
+        <div id="view-vendors" class="view-container hidden">
+            <div class="toolbar">
+                <input type="text" id="search-vendor" placeholder="🔍 Buscar vendedor...">
+                <button class="btn btn-primary" id="add-vendor-btn">+ Nuevo Vendedor</button>
+            </div>
+            <div class="grid-layout" id="vendors-list">
+                <!-- Vendor Cards Generated via JS -->
+            </div>
         </div>
 
-        <!-- Kanban Board Area -->
-        <main class="board" id="kanban-board">
-            <!-- Las columnas se generarán dinámicamente o estarán estáticas aquí -->
-            <!-- Columna: Nuevo -->
-            <div class="column" data-status="nuevo" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="column-header status-nuevo">
-                    <h3>Nuevo</h3>
-                    <span class="count" id="count-nuevo">0</span>
+        <!-- VIEW: PROCEDURES -->
+        <div id="view-procedures" class="view-container hidden">
+            <div class="toolbar">
+                <div class="search-filter">
+                    <input type="text" id="search-procedure" placeholder="🔍 Buscar procedimiento...">
+                    <select id="filter-procedure-vendor">
+                        <option value="all">Todos los Vendedores</option>
+                        <!-- Options generated via JS -->
+                    </select>
                 </div>
-                <div class="column-content" id="list-nuevo">
-                    <!-- Cards van aquí -->
-                </div>
+                <button class="btn btn-primary" id="add-procedure-btn">+ Nuevo Procedimiento</button>
             </div>
-
-            <!-- Columna: Contactado -->
-            <div class="column" data-status="contactado" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="column-header status-contactado">
-                    <h3>Contactado</h3>
-                    <span class="count" id="count-contactado">0</span>
-                </div>
-                <div class="column-content" id="list-contactado"></div>
+            <div class="list-layout" id="procedures-list">
+                <!-- Procedure items Generated via JS -->
             </div>
-
-            <!-- Columna: Procedimientos -->
-            <div class="column" data-status="procedimientos" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="column-header status-procedimientos">
-                    <h3>Procedimientos</h3>
-                    <span class="count" id="count-procedimientos">0</span>
-                </div>
-                <div class="column-content" id="list-procedimientos"></div>
-            </div>
-
-            <!-- Columna: Cerrado -->
-            <div class="column" data-status="cerrado" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="column-header status-cerrado">
-                    <h3>Cerrado</h3>
-                    <span class="count" id="count-cerrado">0</span>
-                </div>
-                <div class="column-content" id="list-cerrado"></div>
-            </div>
-
-            <!-- Columna: Perdido -->
-            <div class="column" data-status="perdido" ondrop="drop(event)" ondragover="allowDrop(event)">
-                <div class="column-header status-perdido">
-                    <h3>Perdido</h3>
-                    <span class="count" id="count-perdido">0</span>
-                </div>
-                <div class="column-content" id="list-perdido"></div>
-            </div>
-        </main>
+        </div>
     </section>
 
     <!-- MODAL BROKER -->
@@ -199,6 +238,73 @@
         </div>
     </div>
 
+    <!-- MODAL VENDOR -->
+    <div id="vendor-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="vendor-modal-title">Nuevo Vendedor</h2>
+            <form id="vendor-form">
+                <input type="hidden" id="vendor-id">
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="vendor-name" required placeholder="Ej: Allianz, Sanitas...">
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <input type="text" id="vendor-category" placeholder="Ej: Salud, Vida, Autos">
+                </div>
+                <div class="form-group">
+                    <label>Contacto / Email</label>
+                    <input type="text" id="vendor-contact" placeholder="soporte@empresa.com">
+                </div>
+                <div class="form-group">
+                    <label>Web / Portal</label>
+                    <input type="url" id="vendor-website" placeholder="https://...">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PROCEDURE -->
+    <div id="procedure-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="procedure-modal-title">Nuevo Procedimiento</h2>
+            <form id="procedure-form">
+                <input type="hidden" id="procedure-id">
+
+                <div class="form-group">
+                    <label>Título *</label>
+                    <input type="text" id="proc-title" required placeholder="Ej: Alta de Póliza">
+                </div>
+
+                <div class="form-group">
+                    <label>Vendedor *</label>
+                    <select id="proc-vendor" required>
+                        <option value="">Selecciona un vendedor...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Contenido / Pasos</label>
+                    <textarea id="proc-content" rows="6"
+                        placeholder="Describe los pasos del procedimiento..."></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline close-modal-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="script.js"></script>
 </body>
 

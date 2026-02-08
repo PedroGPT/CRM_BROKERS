@@ -1,62 +1,67 @@
 
 // ==========================================
-// ESTADO Y CONFIGURACIÓN
+// CONFIGURACIÓN SUPABASE
+// ==========================================
+
+const SUPABASE_URL = 'https://xhcchfehqafmovietgom.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_fdnykftr9iBH2pEZFeuH6g_YS5qzYAU';
+const supabase = (window.supabase && window.supabase.createClient) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+// ==========================================
+// ESTADO LOCAL (Cache)
 // ==========================================
 
 const store = {
     brokers: [],
-    config: {
-        password: null // Se guardará hasheada (simple)
-    },
-    session: {
-        active: false,
-        lastLogin: null
-    }
+    vendors: [],
+    procedures: [],
+    session: null
 };
 
-const DB_KEY = 'mini_crm_data';
-
 // ==========================================
-// UTILIDADES Y PERSISTENCIA
+// NAVEGACIÓN Y VISTAS
 // ==========================================
 
-// Simple hash para no guardar la password en texto plano (Basic Security)
-function simpleHash(str) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        const char = str.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash.toString();
-}
+document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Update Nav
+        document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-function saveData() {
-    localStorage.setItem(DB_KEY, JSON.stringify(store));
-}
+        // Update View
+        const viewId = `view-${btn.dataset.view}`;
+        document.querySelectorAll('.view-container').forEach(v => v.classList.add('hidden'));
+        document.getElementById(viewId).classList.remove('hidden');
+        document.getElementById(viewId).classList.add('active');
 
-function loadData() {
-    try {
-        const data = localStorage.getItem(DB_KEY);
-        if (data) {
-            const parsed = JSON.parse(data);
-            store.brokers = parsed.brokers || parsed.clients || [];
-            store.config = parsed.config || { password: null };
-            store.session = parsed.session || { active: false, lastLogin: null };
+        // Refresh Data if needed
+        if (btn.dataset.view === 'vendors') renderVendors();
+        if (btn.dataset.view === 'procedures') renderProcedures();
+    });
+});
 
-            // MIGRATION: Propuesta -> Procedimientos
-            store.brokers.forEach(broker => {
-                if (broker.status === 'propuesta') {
-                    broker.status = 'procedimientos';
-                }
-            });
-        }
-    } catch (e) {
-        console.error("Error loading data", e);
-        // Reset defaults if corrupted
-        store.brokers = [];
-        store.config = { password: null };
-    }
+// ==========================================
+// DATA FETCHING (SUPABASE)
+// ==========================================
+
+async function loadData() {
+    if (!supabase) return;
+
+    // Load Vendors
+    const { data: vendors, error: errV } = await supabase.from('vendors').select('*');
+    if (vendors) store.vendors = vendors;
+
+    // Load Procedures
+    const { data: procedures, error: errP } = await supabase.from('procedures').select('*');
+    if (procedures) store.procedures = procedures;
+
+    // Load Brokers
+    const { data: brokers, error: errB } = await supabase.from('brokers').select('*');
+    if (brokers) store.brokers = brokers;
+
+    if (errV || errP || errB) console.error("Error loading data:", errV, errP, errB);
+
+    renderDashboard();
 }
 
 function showToast(message, type = 'info') {
@@ -67,149 +72,141 @@ function showToast(message, type = 'info') {
     if (type === 'error') toast.style.backgroundColor = 'var(--danger)';
     if (type === 'success') toast.style.backgroundColor = 'var(--success)';
     container.appendChild(toast);
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // ==========================================
-// AUTENTICACIÓN
+// VENDORS LOGIC
 // ==========================================
 
-function initAuth() {
-    const authSection = document.getElementById('auth-section');
-    const appSection = document.getElementById('app-section');
-    const authTitle = document.getElementById('auth-title');
-    const authMessage = document.getElementById('auth-message');
-    const authBtn = document.getElementById('auth-btn');
-    const oldPassGroup = document.getElementById('old-password-group');
-    const passwordInput = document.getElementById('password-input');
+function renderVendors() {
+    const container = document.getElementById('vendors-list');
+    container.innerHTML = '';
+    const filter = document.getElementById('search-vendor').value.toLowerCase();
 
-    // Comprobar estado de autenticación
-    if (store.session.active) {
-        authSection.classList.add('hidden');
-        appSection.classList.remove('hidden');
-        renderDashboard();
-        return;
-    }
+    store.vendors.forEach(v => {
+        if (!v.name.toLowerCase().includes(filter)) return;
 
-    authSection.classList.remove('hidden');
-    appSection.classList.add('hidden');
-    oldPassGroup.classList.add('hidden');
+        const card = document.createElement('div');
+        card.className = 'vendor-card';
+        card.innerHTML = `
+            <div class="vendor-header">
+                <span class="vendor-title">${v.name}</span>
+                ${v.category ? `<span class="vendor-category">${v.category}</span>` : ''}
+            </div>
+            <div class="card-details">
+                ${v.contact_info ? `✉️ ${v.contact_info}<br>` : ''}
+                ${v.website ? `🌐 <a href="${v.website}" target="_blank">Web</a>` : ''}
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
 
-    if (!store.config.password) {
-        // Primera vez: Configurar contraseña
-        authTitle.innerText = "Bienvenido al CRM";
-        authMessage.innerText = "Configura tu contraseña de acceso para empezar.";
-        authBtn.innerText = "Guardar Contraseña";
-        authBtn.dataset.action = 'setup';
+document.getElementById('add-vendor-btn').addEventListener('click', () => {
+    document.getElementById('vendor-form').reset();
+    document.getElementById('vendor-modal').classList.remove('hidden');
+});
+
+document.getElementById('vendor-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('vendor-name').value;
+    const category = document.getElementById('vendor-category').value;
+    const contact_info = document.getElementById('vendor-contact').value;
+    const website = document.getElementById('vendor-website').value;
+
+    const { data, error } = await supabase.from('vendors').insert([{ name, category, contact_info, website }]).select();
+
+    if (!error) {
+        store.vendors.push(data[0]);
+        renderVendors();
+        document.getElementById('vendor-modal').classList.add('hidden');
+        showToast('Vendedor creado', 'success');
     } else {
-        // Login normal
-        authTitle.innerText = "Iniciar Sesión";
-        authMessage.innerText = "Introduce tu contraseña para continuar.";
-        authBtn.innerText = "Entrar";
-        authBtn.dataset.action = 'login';
-        passwordInput.value = '';
-    }
-}
-
-document.getElementById('auth-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const passwordInput = document.getElementById('password-input');
-    const pass = passwordInput.value;
-    const btn = document.getElementById('auth-btn');
-    const action = btn.dataset.action;
-
-    if (!pass) return;
-
-    if (action === 'setup') {
-        store.config.password = simpleHash(pass);
-        store.session.active = true;
-        store.session.lastLogin = new Date().toISOString();
-        saveData();
-        showToast('Contraseña guardada correctamente', 'success');
-        initAuth();
-    } else if (action === 'login') {
-        if (simpleHash(pass) === store.config.password) {
-            store.session.active = true;
-            store.session.lastLogin = new Date().toISOString();
-            saveData();
-            initAuth();
-        } else {
-            showToast('Contraseña incorrecta', 'error');
-            passwordInput.value = '';
-        }
-    } else if (action === 'change') {
-        const oldPassInput = document.getElementById('old-password-input');
-        const oldPass = oldPassInput.value;
-
-        if (simpleHash(oldPass) === store.config.password) {
-            store.config.password = simpleHash(pass);
-            saveData();
-            showToast('Contraseña actualizada', 'success');
-            // Reset UI form to login/hidden state
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('app-section').classList.remove('hidden');
-        } else {
-            showToast('La contraseña actual no es correcta', 'error');
-        }
+        showToast('Error al crear vendedor', 'error');
     }
 });
 
-document.getElementById('logout-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    store.session.active = false;
-    saveData();
-    // Limpiar UI
-    document.getElementById('user-menu').classList.add('hidden');
-    initAuth();
-});
-
-document.getElementById('user-menu-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const menu = document.getElementById('user-menu');
-    menu.classList.toggle('hidden');
-});
-
-document.addEventListener('click', () => {
-    const menu = document.getElementById('user-menu');
-    if (!menu.classList.contains('hidden')) menu.classList.add('hidden');
-});
-
-document.getElementById('change-pass-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    // Reutilizamos el formulario de auth para cambiar contraseña
-    const authSection = document.getElementById('auth-section');
-    const appSection = document.getElementById('app-section');
-    const authTitle = document.getElementById('auth-title');
-    const authMessage = document.getElementById('auth-message');
-    const authBtn = document.getElementById('auth-btn');
-    const oldPassGroup = document.getElementById('old-password-group');
-    const passwordInput = document.getElementById('password-input');
-    const oldPassInput = document.getElementById('old-password-input');
-
-    appSection.classList.add('hidden');
-    authSection.classList.remove('hidden');
-
-    authTitle.innerText = "Cambiar Contraseña";
-    authMessage.innerText = "Introduce tu contraseña actual y la nueva.";
-    authBtn.innerText = "Actualizar";
-    authBtn.dataset.action = 'change';
-
-    oldPassGroup.classList.remove('hidden');
-    passwordInput.value = '';
-    oldPassInput.value = '';
-    passwordInput.placeholder = "Nueva contraseña";
-});
-
+document.getElementById('search-vendor').addEventListener('input', renderVendors);
 
 // ==========================================
-// GESTIÓN DE BROKERS (CRUD)
+// PROCEDURES LOGIC
 // ==========================================
 
-function generateId() {
-    return '_' + Math.random().toString(36).substr(2, 9);
+function renderProcedures() {
+    const container = document.getElementById('procedures-list');
+    container.innerHTML = '';
+    const filter = document.getElementById('search-procedure').value.toLowerCase();
+    const filterVendor = document.getElementById('filter-procedure-vendor').value;
+
+    store.procedures.forEach(p => {
+        if (!p.title.toLowerCase().includes(filter)) return;
+        if (filterVendor !== 'all' && p.vendor_id !== filterVendor) return;
+
+        const vendor = store.vendors.find(v => v.id === p.vendor_id) || { name: 'Desconocido' };
+
+        const card = document.createElement('div');
+        card.className = 'procedure-card';
+        card.innerHTML = `
+            <div class="proc-meta">🏢 ${vendor.name}</div>
+            <div class="card-title">${p.title}</div>
+            <div class="card-details">${p.content ? p.content.substring(0, 100) + '...' : ''}</div>
+        `;
+        container.appendChild(card);
+    });
+
+    // Update Filter Options
+    const select = document.getElementById('filter-procedure-vendor');
+    if (select.children.length === 1) { // Only 'all' exists
+        store.vendors.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.innerText = v.name;
+            select.appendChild(opt);
+        });
+
+        // Update Modal Select as well
+        const modalSelect = document.getElementById('proc-vendor');
+        modalSelect.innerHTML = '<option value="">Selecciona un vendedor...</option>';
+        store.vendors.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.innerText = v.name;
+            modalSelect.appendChild(opt);
+        });
+    }
 }
+
+document.getElementById('add-procedure-btn').addEventListener('click', () => {
+    document.getElementById('procedure-form').reset();
+    document.getElementById('procedure-modal').classList.remove('hidden');
+});
+
+document.getElementById('procedure-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('proc-title').value;
+    const vendor_id = document.getElementById('proc-vendor').value;
+    const content = document.getElementById('proc-content').value;
+
+    const { data, error } = await supabase.from('procedures').insert([{ title, vendor_id, content }]).select();
+
+    if (!error) {
+        store.procedures.push(data[0]);
+        renderProcedures();
+        document.getElementById('procedure-modal').classList.add('hidden');
+        showToast('Procedimiento creado', 'success');
+    } else {
+        showToast('Error al crear procedimiento', 'error');
+    }
+});
+
+document.getElementById('search-procedure').addEventListener('input', renderProcedures);
+document.getElementById('filter-procedure-vendor').addEventListener('change', renderProcedures);
+
+
+// ==========================================
+// DASHBOARD & BROKERS LOGIC
+// ==========================================
 
 function renderDashboard() {
     renderStats();
@@ -220,14 +217,7 @@ function renderStats() {
     const total = store.brokers.length;
     document.getElementById('total-brokers').innerText = total;
 
-    const counts = {
-        nuevo: 0,
-        contactado: 0,
-        procedimientos: 0,
-        cerrado: 0,
-        perdido: 0
-    };
-
+    const counts = { nuevo: 0, contactado: 0, procedimientos: 0, cerrado: 0, perdido: 0 };
     store.brokers.forEach(c => {
         if (counts[c.status] !== undefined) counts[c.status]++;
     });
@@ -242,21 +232,16 @@ function renderBoard() {
     const filterText = document.getElementById('search-input').value.toLowerCase();
     const filterStatus = document.getElementById('filter-status').value;
 
-    // Limpiar columnas
     ['nuevo', 'contactado', 'procedimientos', 'cerrado', 'perdido'].forEach(status => {
         document.getElementById(`list-${status}`).innerHTML = '';
     });
 
     store.brokers.forEach(broker => {
-        // Filtros
         if (filterStatus !== 'all' && broker.status !== filterStatus) return;
-
         const textMatch = broker.name.toLowerCase().includes(filterText) ||
             (broker.company && broker.company.toLowerCase().includes(filterText));
-
         if (!textMatch) return;
 
-        // Crear Card
         const card = document.createElement('div');
         card.className = 'broker-card';
         card.draggable = true;
@@ -281,11 +266,11 @@ function renderBoard() {
     });
 }
 
-// Filtros eventos
+// Filtros
 document.getElementById('search-input').addEventListener('input', renderBoard);
 document.getElementById('filter-status').addEventListener('change', renderBoard);
 
-// Modales
+// Modales Brokers
 const brokerModal = document.getElementById('broker-modal');
 const deleteModal = document.getElementById('delete-modal');
 
@@ -296,14 +281,16 @@ document.getElementById('add-broker-btn').addEventListener('click', () => {
     brokerModal.classList.remove('hidden');
 });
 
-document.querySelectorAll('.close-modal, #cancel-broker-btn, #cancel-delete-btn').forEach(el => {
+document.querySelectorAll('.close-modal, .close-modal-btn, #cancel-broker-btn, #cancel-delete-btn').forEach(el => {
     el.addEventListener('click', () => {
         brokerModal.classList.add('hidden');
         deleteModal.classList.add('hidden');
+        document.getElementById('vendor-modal').classList.add('hidden');
+        document.getElementById('procedure-modal').classList.add('hidden');
     });
 });
 
-document.getElementById('broker-form').addEventListener('submit', (e) => {
+document.getElementById('broker-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('broker-id').value;
     const name = document.getElementById('broker-name').value;
@@ -313,35 +300,32 @@ document.getElementById('broker-form').addEventListener('submit', (e) => {
     const status = document.getElementById('broker-status').value;
     const notes = document.getElementById('broker-notes').value;
 
-    if (!name) return;
+    const brokerData = { name, company, email, whatsapp, status, notes };
 
     if (id) {
         // Editar
-        const index = store.brokers.findIndex(c => c.id === id);
-        if (index > -1) {
-            store.brokers[index] = { ...store.brokers[index], name, company, email, whatsapp, status, notes };
+        const { error } = await supabase.from('brokers').update(brokerData).eq('id', id);
+        if (!error) {
+            const index = store.brokers.findIndex(c => c.id === id);
+            store.brokers[index] = { ...store.brokers[index], ...brokerData };
             showToast('Broker actualizado', 'success');
         }
     } else {
         // Crear
-        store.brokers.push({
-            id: generateId(),
-            name, company, email, whatsapp, status, notes,
-            createdAt: new Date()
-        });
-        showToast('Broker creado', 'success');
+        const { data, error } = await supabase.from('brokers').insert([brokerData]).select();
+        if (!error) {
+            store.brokers.push(data[0]);
+            showToast('Broker creado', 'success');
+        }
     }
 
-    saveData();
     renderDashboard();
     brokerModal.classList.add('hidden');
 });
 
-// Funciones globales para botones onclick inline
 window.openEditModal = (id) => {
     const broker = store.brokers.find(c => c.id === id);
     if (!broker) return;
-
     document.getElementById('broker-id').value = broker.id;
     document.getElementById('broker-name').value = broker.name;
     document.getElementById('broker-company').value = broker.company || '';
@@ -349,7 +333,6 @@ window.openEditModal = (id) => {
     document.getElementById('broker-whatsapp').value = broker.whatsapp || '';
     document.getElementById('broker-status').value = broker.status;
     document.getElementById('broker-notes').value = broker.notes || '';
-
     document.getElementById('modal-title').innerText = 'Editar Broker';
     brokerModal.classList.remove('hidden');
 };
@@ -360,32 +343,24 @@ window.openDeleteModal = (id) => {
     deleteModal.classList.remove('hidden');
 };
 
-document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
     if (brokerToDeleteId) {
-        store.brokers = store.brokers.filter(c => c.id !== brokerToDeleteId);
-        saveData();
-        renderDashboard();
-        showToast('Broker eliminado', 'info');
+        const { error } = await supabase.from('brokers').delete().eq('id', brokerToDeleteId);
+        if (!error) {
+            store.brokers = store.brokers.filter(c => c.id !== brokerToDeleteId);
+            renderDashboard();
+            showToast('Broker eliminado', 'info');
+        }
     }
     deleteModal.classList.add('hidden');
 });
 
-// ==========================================
-// DRAG AND DROP
-// ==========================================
-
-window.allowDrop = (ev) => {
-    ev.preventDefault();
-}
-
-window.drag = (ev) => {
-    ev.dataTransfer.setData("text", ev.target.id);
-}
-
-window.drop = (ev) => {
+// Drag and Drop
+window.allowDrop = (ev) => ev.preventDefault();
+window.drag = (ev) => ev.dataTransfer.setData("text", ev.target.id);
+window.drop = async (ev) => {
     ev.preventDefault();
     const brokerId = ev.dataTransfer.getData("text");
-    // Encontrar el elemento columna más cercano (por si se suelta sobre una tarjeta)
     const column = ev.target.closest('.column');
 
     if (column && brokerId) {
@@ -394,74 +369,23 @@ window.drop = (ev) => {
 
         if (broker && broker.status !== newStatus) {
             broker.status = newStatus;
-            saveData();
-            renderDashboard();
-            showToast(`Broker movido a ${newStatus}`, 'success');
+            renderDashboard(); // Optimistic update
+
+            const { error } = await supabase.from('brokers').update({ status: newStatus }).eq('id', brokerId);
+            if (error) {
+                // Revert if error
+                console.error(error);
+                broker.status = oldStatus; // Need to track old status
+                renderDashboard();
+            } else {
+                showToast(`Broker movido a ${newStatus}`, 'success');
+            }
         }
     }
 }
 
 // ==========================================
-// EXPORT / IMPORT
-// ==========================================
-
-document.getElementById('export-btn').addEventListener('click', () => {
-    const dataStr = JSON.stringify(store);
-    const blob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.download = `crm_backup_${new Date().toISOString().slice(0, 10)}.json`;
-    link.href = url;
-    link.click();
-});
-
-document.getElementById('import-btn-trigger').addEventListener('click', () => {
-    document.getElementById('import-file').click();
-});
-
-document.getElementById('import-file').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const data = JSON.parse(e.target.result);
-            // Validación simple
-            if (data.brokers && data.config) {
-                store.brokers = data.brokers;
-                store.config = data.config;
-                // Mantener sesión actual o forzar login dependiendo de lo deseado.
-                // Aquí conservamos la sesión activa actual para no echar al usuario tras importar.
-                store.session.active = true;
-                saveData();
-                renderDashboard();
-                showToast('Datos importados correctamente', 'success');
-            } else {
-                // Backward compatibility try
-                if (data.clients) {
-                    store.brokers = data.clients;
-                    store.config = data.config;
-                    store.session.active = true;
-                    saveData();
-                    renderDashboard();
-                    showToast('Datos de clientes importados como brokers', 'success');
-                } else {
-                    showToast('Archivo inválido', 'error');
-                }
-            }
-        } catch (err) {
-            showToast('Error al leer el archivo', 'error');
-        }
-    };
-    reader.readAsText(file);
-    // Reset input
-    e.target.value = '';
-});
-
-// ==========================================
-// INICIALIZACIÓN
+// INIT
 // ==========================================
 
 loadData();
-initAuth();
