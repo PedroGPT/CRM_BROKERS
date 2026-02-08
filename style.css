@@ -25,7 +25,7 @@
     /* Blue 500 */
     --status-contactado: #F59E0B;
     /* Amber 500 */
-    --status-propuesta: #8B5CF6;
+    --status-procedimientos: #8B5CF6;
     /* Violet 500 */
     --status-cerrado: #10B981;
     /* Emerald 500 */
@@ -298,8 +298,8 @@ body {
     border-top-color: var(--status-contactado);
 }
 
-.column[data-status="propuesta"] {
-    border-top-color: var(--status-propuesta);
+.column[data-status="procedimientos"] {
+    border-top-color: var(--status-procedimientos);
 }
 
 .column[data-status="cerrado"] {

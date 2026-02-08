@@ -43,6 +43,13 @@ function loadData() {
             store.brokers = parsed.brokers || parsed.clients || [];
             store.config = parsed.config || { password: null };
             store.session = parsed.session || { active: false, lastLogin: null };
+
+            // MIGRATION: Propuesta -> Procedimientos
+            store.brokers.forEach(broker => {
+                if (broker.status === 'propuesta') {
+                    broker.status = 'procedimientos';
+                }
+            });
         }
     } catch (e) {
         console.error("Error loading data", e);
@@ -216,7 +223,7 @@ function renderStats() {
     const counts = {
         nuevo: 0,
         contactado: 0,
-        propuesta: 0,
+        procedimientos: 0,
         cerrado: 0,
         perdido: 0
     };
@@ -236,7 +243,7 @@ function renderBoard() {
     const filterStatus = document.getElementById('filter-status').value;
 
     // Limpiar columnas
-    ['nuevo', 'contactado', 'propuesta', 'cerrado', 'perdido'].forEach(status => {
+    ['nuevo', 'contactado', 'procedimientos', 'cerrado', 'perdido'].forEach(status => {
         document.getElementById(`list-${status}`).innerHTML = '';
     });
 
@@ -433,12 +440,12 @@ document.getElementById('import-file').addEventListener('change', (e) => {
             } else {
                 // Backward compatibility try
                 if (data.clients) {
-                     store.brokers = data.clients;
-                     store.config = data.config;
-                     store.session.active = true;
-                     saveData();
-                     renderDashboard();
-                     showToast('Datos de clientes importados como brokers', 'success');
+                    store.brokers = data.clients;
+                    store.config = data.config;
+                    store.session.active = true;
+                    saveData();
+                    renderDashboard();
+                    showToast('Datos de clientes importados como brokers', 'success');
                 } else {
                     showToast('Archivo inválido', 'error');
                 }
