@@ -90,6 +90,14 @@
             <div class="toolbar">
                 <div class="search-filter">
                     <input type="text" id="search-input" placeholder="🔍 Buscar...">
+                    <select id="filter-status" style="margin-left: 10px; padding: 5px;">
+                        <option value="all">Todos los Estados</option>
+                        <option value="nuevo">Nuevo</option>
+                        <option value="contactado">Contactado</option>
+                        <option value="procedimientos">Procedimientos</option>
+                        <option value="cerrado">Cerrado</option>
+                        <option value="perdido">Perdido</option>
+                    </select>
                 </div>
                 <button class="btn btn-primary" id="add-broker-btn" data-i18n="new_broker">+ Nuevo Broker</button>
             </div>
@@ -307,7 +315,7 @@
 
     <!-- Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="script.js?v=2.3"></script>
+    <script src="script.js?v=2.5"></script>
 </body>
 
 </html>
