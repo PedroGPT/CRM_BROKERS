@@ -59,8 +59,12 @@
                 <input type="file" id="import-file" accept=".json" style="display: none;">
 
                 <div class="lang-toggle">
-                    <button class="icon-btn lang-btn" id="lang-es" onclick="setLanguage('es')">🇪🇸</button>
-                    <button class="icon-btn lang-btn" id="lang-en" onclick="setLanguage('en')">🇺🇸</button>
+                    <select id="lang-selector" onchange="setLanguage(this.value)"
+                        style="padding: 5px; border-radius: 5px; border: 1px solid #ddd; margin-right: 10px;">
+                        <option value="es">🇪🇸 Español</option>
+                        <option value="en">🇺🇸 English</option>
+                        <option value="zh">🇨🇳 中文</option>
+                    </select>
                 </div>
 
                 <div class="dropdown">
