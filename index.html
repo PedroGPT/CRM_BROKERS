@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini CRM Broker</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Iconos (opcional, usando caracteres o SVGs inline para no depender de librerías externas como FontAwesome, aunque Google Fonts para tipografía es aceptable según reglas, pero el usuario pidió "solo HTML/CSS/JS" sin librerías externas. Usaré emojis o CSS shapes para iconos para cumplir estrictamente). -->
+</head>
+
+<body>
+
+    <!-- Notificaciones / Toast -->
+    <div id="toast-container"></div>
+
+    <!-- SECCIÓN DE AUTENTICACIÓN -->
+    <section id="auth-section" class="auth-container">
+        <div class="auth-card">
+            <h1 id="auth-title">Bienvenido al CRM</h1>
+            <p id="auth-message">Por favor, configura tu contraseña de acceso.</p>
+
+            <form id="auth-form">
+                <div class="form-group">
+                    <label for="password-input">Contraseña</label>
+                    <input type="password" id="password-input" required placeholder="Tu contraseña segura">
+                </div>
+                <!-- Solo se muestra al cambiar contraseña -->
+                <div class="form-group hidden" id="old-password-group">
+                    <label for="old-password-input">Contraseña Actual</label>
+                    <input type="password" id="old-password-input" placeholder="Contraseña actual">
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="auth-btn">Guardar Contraseña</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- SECCIÓN PRINCIPAL DEL CRM -->
+    <section id="app-section" class="app-container hidden">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <h2>🚀 Broker CRM</h2>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total</span>
+                    <span class="stat-value" id="total-brokers">0</span>
+                </div>
+                <!-- Se pueden añadir más contadores aquí dinámicamente -->
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="export-btn" title="Exportar Backup">💾 Exportar</button>
+                <button class="btn btn-secondary" id="import-btn-trigger" title="Importar Backup">📂 Importar</button>
+                <input type="file" id="import-file" accept=".json" style="display: none;">
+
+                <div class="dropdown">
+                    <button class="btn btn-outline" id="user-menu-btn">👤 Cuenta</button>
+                    <div class="dropdown-content hidden" id="user-menu">
+                        <a href="#" id="change-pass-btn">Cambiar Contraseña</a>
+                        <a href="#" id="logout-btn">Cerrar Sesión</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-filter">
+                <input type="text" id="search-input" placeholder="🔍 Buscar por nombre, empresa...">
+                <select id="filter-status">
+                    <option value="all">Todos los Estados</option>
+                    <option value="nuevo">Nuevo</option>
+                    <option value="contactado">Contactado</option>
+                    <option value="propuesta">Propuesta</option>
+                    <option value="cerrado">Cerrado</option>
+                    <option value="perdido">Perdido</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" id="add-broker-btn">+ Nuevo Broker</button>
+        </div>
+
+        <!-- Kanban Board Area -->
+        <main class="board" id="kanban-board">
+            <!-- Las columnas se generarán dinámicamente o estarán estáticas aquí -->
+            <!-- Columna: Nuevo -->
+            <div class="column" data-status="nuevo" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="column-header status-nuevo">
+                    <h3>Nuevo</h3>
+                    <span class="count" id="count-nuevo">0</span>
+                </div>
+                <div class="column-content" id="list-nuevo">
+                    <!-- Cards van aquí -->
+                </div>
+            </div>
+
+            <!-- Columna: Contactado -->
+            <div class="column" data-status="contactado" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="column-header status-contactado">
+                    <h3>Contactado</h3>
+                    <span class="count" id="count-contactado">0</span>
+                </div>
+                <div class="column-content" id="list-contactado"></div>
+            </div>
+
+            <!-- Columna: Propuesta -->
+            <div class="column" data-status="propuesta" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="column-header status-propuesta">
+                    <h3>Propuesta</h3>
+                    <span class="count" id="count-propuesta">0</span>
+                </div>
+                <div class="column-content" id="list-propuesta"></div>
+            </div>
+
+            <!-- Columna: Cerrado -->
+            <div class="column" data-status="cerrado" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="column-header status-cerrado">
+                    <h3>Cerrado</h3>
+                    <span class="count" id="count-cerrado">0</span>
+                </div>
+                <div class="column-content" id="list-cerrado"></div>
+            </div>
+
+            <!-- Columna: Perdido -->
+            <div class="column" data-status="perdido" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <div class="column-header status-perdido">
+                    <h3>Perdido</h3>
+                    <span class="count" id="count-perdido">0</span>
+                </div>
+                <div class="column-content" id="list-perdido"></div>
+            </div>
+        </main>
+    </section>
+
+    <!-- MODAL BROKER -->
+    <div id="broker-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Nuevo Broker</h2>
+            <form id="broker-form">
+                <input type="hidden" id="broker-id">
+
+                <div class="form-group">
+                    <label for="broker-name">Nombre *</label>
+                    <input type="text" id="broker-name" required placeholder="Nombre completo">
+                </div>
+
+                <div class="form-group">
+                    <label for="broker-company">Empresa</label>
+                    <input type="text" id="broker-company" placeholder="Nombre de la empresa">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="broker-email">Email</label>
+                        <input type="email" id="broker-email" placeholder="correo@ejemplo.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="broker-whatsapp">WhatsApp</label>
+                        <input type="tel" id="broker-whatsapp" placeholder="+34 600 000 000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="broker-status">Estado *</label>
+                    <select id="broker-status" required>
+                        <option value="nuevo">Nuevo</option>
+                        <option value="contactado">Contactado</option>
+                        <option value="propuesta">Propuesta</option>
+                        <option value="cerrado">Cerrado</option>
+                        <option value="perdido">Perdido</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="broker-notes">Notas</label>
+                    <textarea id="broker-notes" rows="3" placeholder="Detalles importantes..."></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="cancel-broker-btn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CONFIRMACIÓN BORRAR -->
+    <div id="delete-modal" class="modal hidden">
+        <div class="modal-content small-modal">
+            <h3>¿Estás seguro?</h3>
+            <p>Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancel-delete-btn">Cancelar</button>
+                <button class="btn btn-danger" id="confirm-delete-btn">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
