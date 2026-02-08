@@ -59,14 +59,11 @@ async function loadData() {
         if (brokers) store.brokers = brokers;
 
         // Load Config (Simulated for now, as we don't have a settings table yet)
-        // If local storage has session, keep it valid for this demo
-        const localSession = localStorage.getItem('crm_session');
-        if (localSession === 'active') {
-            store.session = { active: true };
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('app-section').classList.remove('hidden');
-            renderDashboard();
-        }
+        // FORCE LOGIN FOR DEBUGGING
+        store.session = { active: true };
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app-section').classList.remove('hidden');
+        renderDashboard();
 
     } catch (err) {
         console.error("Error loading data:", err);
