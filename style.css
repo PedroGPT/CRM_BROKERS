@@ -281,6 +281,12 @@ body {
     /* Hidden by default, shown via JS for admins */
 }
 
+#add-vendor-btn,
+#add-procedure-btn {
+    display: none;
+    /* Only visible for admins via JS */
+}
+
 /* VIEWS */
 .view-container {
     flex: 1;
