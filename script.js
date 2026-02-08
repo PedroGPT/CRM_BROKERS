@@ -32,10 +32,10 @@ var store = {
 const translations = {
     es: {
         dashboard: "📊 Tablero",
-        vendors: "🏢 Vendedores",
+        vendors: "🏢 Sellers",
         procedures: "📄 Procedimientos",
         new_broker: "+ Nuevo Broker",
-        new_vendor: "+ Nuevo Vendedor",
+        new_vendor: "+ Nuevo Seller",
         new_procedure: "+ Nuevo Procedimiento",
         search_placeholder: "🔍 Buscar...",
         total_brokers: "Total Brokers",
@@ -49,14 +49,20 @@ const translations = {
         mandate: "Mandato",
         category: "Categoría",
         contact: "Contacto",
-        web: "Web"
+        web: "Web",
+        // Kanban
+        status_nuevo: "Nuevo",
+        status_contactado: "Contactado",
+        status_procedimientos: "Procedimientos",
+        status_cerrado: "Cerrado",
+        status_perdido: "Perdido"
     },
     en: {
         dashboard: "📊 Dashboard",
-        vendors: "🏢 Vendors",
+        vendors: "🏢 Sellers",
         procedures: "📄 Procedures",
         new_broker: "+ New Broker",
-        new_vendor: "+ New Vendor",
+        new_vendor: "+ New Seller",
         new_procedure: "+ New Procedure",
         search_placeholder: "🔍 Search...",
         total_brokers: "Total Brokers",
@@ -70,7 +76,13 @@ const translations = {
         mandate: "Mandate",
         category: "Category",
         contact: "Contact",
-        web: "Web"
+        web: "Web",
+        // Kanban
+        status_nuevo: "New",
+        status_contactado: "Contacted",
+        status_procedimientos: "Procedures",
+        status_cerrado: "Closed",
+        status_perdido: "Lost"
     }
 };
 
@@ -95,6 +107,13 @@ function updateTranslations() {
 
     // Headers & Labels
     document.querySelector('.stat-label').innerText = t('total_brokers');
+
+    // Kanban Headers
+    document.querySelector('.status-nuevo h3').innerText = t('status_nuevo');
+    document.querySelector('.status-contactado h3').innerText = t('status_contactado');
+    document.querySelector('.status-procedimientos h3').innerText = t('status_procedimientos');
+    document.querySelector('.status-cerrado h3').innerText = t('status_cerrado');
+    document.querySelector('.status-perdido h3').innerText = t('status_perdido');
 
     // Placeholders
     document.getElementById('search-input').placeholder = t('search_placeholder');
@@ -164,14 +183,17 @@ async function loadData() {
             document.querySelectorAll('.nav-item').forEach(el => el.style.display = 'inline-block');
 
             // Show "Login" button for Brokers to become Admins
-            const loginBtn = document.createElement('button');
-            loginBtn.className = 'btn btn-outline';
-            loginBtn.innerText = t('login_btn');
-            loginBtn.onclick = () => {
-                document.getElementById('app-section').classList.add('hidden');
-                document.getElementById('auth-section').classList.remove('hidden');
-            };
-            document.querySelector('.header-actions').prepend(loginBtn);
+            if (!document.getElementById('header-login-btn')) {
+                const loginBtn = document.createElement('button');
+                loginBtn.id = 'header-login-btn';
+                loginBtn.className = 'btn btn-outline';
+                loginBtn.innerText = t('login_btn');
+                loginBtn.onclick = () => {
+                    document.getElementById('app-section').classList.add('hidden');
+                    document.getElementById('auth-section').classList.remove('hidden');
+                };
+                document.querySelector('.header-actions').prepend(loginBtn);
+            }
         }
 
         document.getElementById('auth-section').classList.add('hidden');
@@ -189,6 +211,10 @@ function setupAdminView() {
     // Show Add Buttons (Admin Only)
     document.getElementById('add-vendor-btn').classList.remove('hidden');
     document.getElementById('add-procedure-btn').classList.remove('hidden');
+
+    // Hide Login Button if exists
+    const loginBtn = document.getElementById('header-login-btn');
+    if (loginBtn) loginBtn.remove();
 }
 
 // ==========================================
@@ -203,9 +229,14 @@ document.getElementById('auth-form').addEventListener('submit', (e) => {
         store.session = { active: true, role: 'admin' };
         localStorage.setItem('crm_session', 'active');
         setupAdminView();
+
+        // REFRESH VIEWS TO SHOW ADMIN BUTTONS
+        renderVendors();
+        renderProcedures();
+        renderDashboard();
+
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
-        renderDashboard();
     } else {
         alert('Contraseña incorrecta (Prueba: admin123)');
     }
