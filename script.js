@@ -109,6 +109,18 @@ document.getElementById('auth-form').addEventListener('submit', (e) => {
     }
 });
 
+// Dropdown User Menu
+document.getElementById('user-menu-btn').addEventListener('click', () => {
+    document.getElementById('user-menu').classList.toggle('hidden');
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown')) {
+        document.getElementById('user-menu').classList.add('hidden');
+    }
+});
+
 document.getElementById('logout-btn').addEventListener('click', () => {
     store.session = null;
     localStorage.removeItem('crm_session');
