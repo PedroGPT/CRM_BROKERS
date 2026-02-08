@@ -505,9 +505,11 @@ function renderProcedures() {
 
     store.procedures.forEach(p => {
         if (!p.title.toLowerCase().includes(filter)) return;
-        if (filterVendor !== 'all' && p.vendor_id !== filterVendor) return;
+        // RELAXED CHECK: != instead of !== to handle string/number mismatch
+        if (filterVendor !== 'all' && p.vendor_id != filterVendor) return;
 
-        const vendor = store.vendors.find(v => v.id === p.vendor_id) || { name: 'Desconocido', sales_mandate: '' };
+        // RELAXED CHECK: == instead of ===
+        const vendor = store.vendors.find(v => v.id == p.vendor_id) || { name: 'Desconocido', sales_mandate: '' };
 
         const card = document.createElement('div');
         card.className = 'procedure-card';
@@ -523,7 +525,7 @@ function renderProcedures() {
     });
 
     if (container.children.length === 0) {
-        container.innerHTML = `<div class="empty-state"><p>No hay procedimientos para este criterio.</p></div>`;
+        container.innerHTML = `<div class="empty-state"><p>${t('empty_list')}</p></div>`;
     }
 
     // Populate Filters (only once)
