@@ -540,14 +540,19 @@ function renderStats() {
 
 function renderBoard() {
     const filterText = document.getElementById('search-input').value.toLowerCase();
-    const filterStatus = document.getElementById('filter-status').value;
+
+    // SAFE GUARD: Check if filter exists
+    const filterEl = document.getElementById('filter-status');
+    const filterStatus = filterEl ? filterEl.value : 'all';
 
     ['nuevo', 'contactado', 'procedimientos', 'cerrado', 'perdido'].forEach(status => {
         document.getElementById(`list-${status}`).innerHTML = '';
     });
 
     store.brokers.forEach(broker => {
-        if (filterStatus !== 'all' && broker.status !== filterStatus) return;
+        const status = (broker.status || 'nuevo').toLowerCase(); // Forced lowercase match
+
+        if (filterStatus !== 'all' && status !== filterStatus) return;
         const textMatch = broker.name.toLowerCase().includes(filterText) ||
             (broker.company && broker.company.toLowerCase().includes(filterText));
         if (!textMatch) return;
@@ -571,14 +576,19 @@ function renderBoard() {
             </div>
         `;
 
-        const col = document.getElementById(`list-${broker.status}`);
+        const col = document.getElementById(`list-${status}`);
         if (col) col.appendChild(card);
     });
 }
 
 // Filtros
 document.getElementById('search-input').addEventListener('input', renderBoard);
-document.getElementById('filter-status').addEventListener('change', renderBoard);
+
+// SAFE LISTENER
+const filterStatusEl = document.getElementById('filter-status');
+if (filterStatusEl) {
+    filterStatusEl.addEventListener('change', renderBoard);
+}
 
 // Modales Brokers
 var brokerModal = document.getElementById('broker-modal');
