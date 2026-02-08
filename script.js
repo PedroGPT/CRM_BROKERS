@@ -77,9 +77,13 @@ async function loadData() {
 // AUTH LOGIC (SIMPLE)
 // ==========================================
 
-document.getElementById('login-btn').addEventListener('click', () => {
+document.getElementById('auth-form').addEventListener('submit', (e) => {
+    e.preventDefault(); // Stop page reload
+
     // For now, simple access code to not complicate things while we build
     const password = document.getElementById('password-input').value;
+
+    console.log("Intento de login con:", password); // Debug
 
     // Hardcoded simple password for initial access or "admin"
     if (password === 'admin123') {
