@@ -14,8 +14,8 @@
     <!-- Notificaciones / Toast -->
     <div id="toast-container"></div>
 
-    <!-- SECCIÓN DE AUTENTICACIÓN -->
-    <section id="auth-section" class="auth-container">
+    <!-- SECCIÓN DE AUTENTICACIÓN (Oculta por defecto para evitar bloqueos) -->
+    <section id="auth-section" class="auth-container hidden">
         <div class="auth-card">
             <h1 id="auth-title">Bienvenido al CRM</h1>
             <p id="auth-message">Por favor, configura tu contraseña de acceso.</p>
@@ -36,13 +36,13 @@
         </div>
     </section>
 
-    <!-- SECCIÓN PRINCIPAL DEL CRM -->
-    <section id="app-section" class="app-container hidden">
+    <!-- SECCIÓN PRINCIPAL DEL CRM (Visible por defecto) -->
+    <section id="app-section" class="app-container">
 
         <!-- Header -->
         <header class="app-header">
             <div class="logo">
-                <h2>🚀 Broker CRM</h2>
+                <h2>🚀 Broker CRM v2.0</h2>
             </div>
             <div class="header-stats">
                 <div class="stat-item">
