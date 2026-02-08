@@ -275,6 +275,12 @@ body {
     border-bottom-color: var(--primary);
 }
 
+.nav-item[data-view="vendors"],
+.nav-item[data-view="procedures"] {
+    display: none;
+    /* Hidden by default, shown via JS for admins */
+}
+
 /* VIEWS */
 .view-container {
     flex: 1;

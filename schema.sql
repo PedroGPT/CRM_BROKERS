@@ -44,7 +44,7 @@ create policy "Allow public read access on vendors" on vendors for select using 
 create policy "Allow public read access on procedures" on procedures for select using (true);
 create policy "Allow public read access on brokers" on brokers for select using (true);
 
--- Allow insert/update/delete mainly for authenticated users or anon (during dev)
-create policy "Allow full access on vendors" on vendors using (true) with check (true);
-create policy "Allow full access on procedures" on procedures using (true) with check (true);
-create policy "Allow full access on brokers" on brokers using (true) with check (true);
+-- Allow insert/update/delete for everyone (Public API) - TEMPORARY FOR DEV
+create policy "Allow full access on vendors" on vendors for all using (true) with check (true);
+create policy "Allow full access on procedures" on procedures for all using (true) with check (true);
+create policy "Allow full access on brokers" on brokers for all using (true) with check (true);

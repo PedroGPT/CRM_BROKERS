@@ -43,37 +43,46 @@ document.querySelectorAll('.nav-item').forEach(btn => {
 
 
 async function loadData() {
-    // FORCE LOGIN FOR DEBUGGING (Always run this first)
-    store.session = { active: true };
-    document.getElementById('auth-section').classList.add('hidden');
-    document.getElementById('app-section').classList.remove('hidden');
-
     if (!supabase) {
-        console.warn("Supabase not initialized (Network/CDN issue?)");
-        showToast("Modo Offline (Error conexión)", "error");
-        renderDashboard();
+        console.warn("Supabase not initialized");
         return;
     }
 
     try {
-        // Load Vendors
         const { data: vendors } = await supabase.from('vendors').select('*');
         if (vendors) store.vendors = vendors;
 
-        // Load Procedures
         const { data: procedures } = await supabase.from('procedures').select('*');
         if (procedures) store.procedures = procedures;
 
-        // Load Brokers
         const { data: brokers } = await supabase.from('brokers').select('*');
         if (brokers) store.brokers = brokers;
 
-        renderDashboard();
+        // Check Local Session
+        const localSession = localStorage.getItem('crm_session');
+        if (localSession === 'active') {
+            store.session = { active: true };
+            setupAdminView(); // Show Admin Tabs
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('app-section').classList.remove('hidden');
+            renderDashboard();
+        } else {
+            // Guest/Broker View (Login required or public dashboard only?)
+            // For now, require login
+        }
 
     } catch (err) {
         console.error("Error loading data:", err);
     }
 }
+
+function setupAdminView() {
+    // Show Vendor/Procedure tabs only if logged in as Admin
+    document.querySelectorAll('.nav-item[data-view="vendors"], .nav-item[data-view="procedures"]').forEach(el => {
+        el.style.display = 'inline-block';
+    });
+}
+
 
 // ==========================================
 // AUTH LOGIC (SIMPLE)
@@ -91,6 +100,7 @@ document.getElementById('auth-form').addEventListener('submit', (e) => {
     if (password === 'admin123') {
         store.session = { active: true };
         localStorage.setItem('crm_session', 'active');
+        setupAdminView();
         document.getElementById('auth-section').classList.add('hidden');
         document.getElementById('app-section').classList.remove('hidden');
         renderDashboard();
