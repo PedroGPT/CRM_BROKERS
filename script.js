@@ -44,25 +44,68 @@ document.querySelectorAll('.nav-item').forEach(btn => {
 // DATA FETCHING (SUPABASE)
 // ==========================================
 
+// ==========================================
+// DATA FETCHING (SUPABASE)
+// ==========================================
+
 async function loadData() {
     if (!supabase) return;
 
-    // Load Vendors
-    const { data: vendors, error: errV } = await supabase.from('vendors').select('*');
-    if (vendors) store.vendors = vendors;
+    try {
+        // Load Vendors
+        const { data: vendors } = await supabase.from('vendors').select('*');
+        if (vendors) store.vendors = vendors;
 
-    // Load Procedures
-    const { data: procedures, error: errP } = await supabase.from('procedures').select('*');
-    if (procedures) store.procedures = procedures;
+        // Load Procedures
+        const { data: procedures } = await supabase.from('procedures').select('*');
+        if (procedures) store.procedures = procedures;
 
-    // Load Brokers
-    const { data: brokers, error: errB } = await supabase.from('brokers').select('*');
-    if (brokers) store.brokers = brokers;
+        // Load Brokers
+        const { data: brokers } = await supabase.from('brokers').select('*');
+        if (brokers) store.brokers = brokers;
 
-    if (errV || errP || errB) console.error("Error loading data:", errV, errP, errB);
+        // Load Config (Simulated for now, as we don't have a settings table yet)
+        // If local storage has session, keep it valid for this demo
+        const localSession = localStorage.getItem('crm_session');
+        if (localSession === 'active') {
+            store.session = { active: true };
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('app-section').classList.remove('hidden');
+            renderDashboard();
+        }
 
-    renderDashboard();
+    } catch (err) {
+        console.error("Error loading data:", err);
+    }
 }
+
+// ==========================================
+// AUTH LOGIC (SIMPLE)
+// ==========================================
+
+document.getElementById('login-btn').addEventListener('click', () => {
+    // For now, simple access code to not complicate things while we build
+    const password = document.getElementById('password-input').value;
+
+    // Hardcoded simple password for initial access or "admin"
+    if (password === 'admin123') {
+        store.session = { active: true };
+        localStorage.setItem('crm_session', 'active');
+        document.getElementById('auth-section').classList.add('hidden');
+        document.getElementById('app-section').classList.remove('hidden');
+        renderDashboard();
+    } else {
+        alert('Contraseña incorrecta (Prueba: admin123)');
+    }
+});
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+    store.session = null;
+    localStorage.removeItem('crm_session');
+    document.getElementById('app-section').classList.add('hidden');
+    document.getElementById('auth-section').classList.remove('hidden');
+    document.getElementById('password-input').value = '';
+});
 
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
