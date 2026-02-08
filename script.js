@@ -272,6 +272,10 @@ function renderVendors() {
         `;
         container.appendChild(card);
     });
+
+    if (container.children.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>No hay elementos para mostrar.</p></div>`;
+    }
 }
 
 document.getElementById('add-vendor-btn').addEventListener('click', () => {
@@ -357,6 +361,10 @@ function renderProcedures() {
         `;
         container.appendChild(card);
     });
+
+    if (container.children.length === 0) {
+        container.innerHTML = `<div class="empty-state"><p>No hay procedimientos para este criterio.</p></div>`;
+    }
 
     // Populate Filters (only once)
     const select = document.getElementById('filter-procedure-vendor');
