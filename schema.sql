@@ -8,6 +8,7 @@ create table vendors (
   category text,
   contact_info text,
   website text,
+  sales_mandate text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
