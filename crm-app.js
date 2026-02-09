@@ -410,6 +410,7 @@ function renderVendors() {
 
         const card = document.createElement('div');
         card.className = 'vendor-card';
+        // Add data-id for event delegation
         card.innerHTML = `
             <div class="vendor-header">
                 <div>
@@ -423,7 +424,7 @@ function renderVendors() {
                 ${v.website ? `🌐 <a href="${v.website}" target="_blank">${t('web')}</a>` : ''}
             </div>
             ${isAdmin ? `<div class="card-actions" style="margin-top:0.5rem; justify-content:flex-end;">
-                <button class="icon-btn edit-btn" onclick="editVendor('${v.id}')">✏️</button>
+                <button class="icon-btn edit-btn" data-id="${v.id}">✏️</button>
             </div>` : ''}
         `;
         container.appendChild(card);
@@ -432,6 +433,15 @@ function renderVendors() {
     if (container.children.length === 0) {
         container.innerHTML = `<div class="empty-state"><p>${t('empty_list')}</p></div>`;
     }
+
+    // Event Delegation for Edit Buttons
+    const editBtns = container.querySelectorAll('.edit-btn');
+    editBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.currentTarget.getAttribute('data-id');
+            editVendor(id);
+        });
+    });
 }
 
 document.getElementById('add-vendor-btn').addEventListener('click', () => {
@@ -441,11 +451,14 @@ document.getElementById('add-vendor-btn').addEventListener('click', () => {
     document.getElementById('vendor-modal').classList.remove('hidden');
 });
 
+// Helper available globally just in case, but used via event listener above
 window.editVendor = (id) => {
-    console.log("Editando vendor ID:", id); // DEBUG
-    const v = store.vendors.find(item => item.id == id); // == for loose string/number comparison
+    console.log("Editando vendor ID:", id);
+    // Loose comparison for safety (string vs number)
+    const v = store.vendors.find(item => item.id == id);
     if (!v) {
         console.error("Vendor not found for ID:", id);
+        alert("Error: No se encuentra el vendedor con ID " + id);
         return;
     }
     document.getElementById('vendor-id').value = v.id;
@@ -461,8 +474,7 @@ window.editVendor = (id) => {
 
 document.getElementById('vendor-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log("Intentando guardar vendedor..."); // Debug
-
+    // Validate fields if necessary
     const id = document.getElementById('vendor-id').value;
     const name = document.getElementById('vendor-name').value;
     const category = document.getElementById('vendor-category').value;
@@ -471,7 +483,6 @@ document.getElementById('vendor-form').addEventListener('submit', async (e) => {
     const sales_mandate = document.getElementById('vendor-mandate').value;
 
     const dataObj = { name, category, contact_info, website, sales_mandate };
-    console.log("Payload:", dataObj);
 
     try {
         if (id) {
@@ -505,6 +516,8 @@ document.getElementById('vendor-form').addEventListener('submit', async (e) => {
         }
 
         renderVendors();
+        // Also refresh procedures view to update potential dropdowns if needed
+        renderProcedures();
         document.getElementById('vendor-modal').classList.add('hidden');
 
     } catch (err) {
@@ -551,26 +564,37 @@ function renderProcedures() {
         container.innerHTML = `<div class="empty-state"><p>${t('empty_list')}</p></div>`;
     }
 
-    // Populate Filters (only once)
-    const select = document.getElementById('filter-procedure-vendor');
-    if (select.children.length === 1) {
-        store.vendors.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v.id;
-            opt.innerText = v.name;
-            select.appendChild(opt);
-        });
+    // Always Refresh Vendor Dropdowns to ensure they are up to date
+    populateVendorDropdowns();
+}
 
-        // Modal Select
-        const modalSelect = document.getElementById('proc-vendor');
-        modalSelect.innerHTML = '<option value="">Selecciona un vendedor...</option>';
-        store.vendors.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v.id;
-            opt.innerText = v.name;
-            modalSelect.appendChild(opt);
-        });
-    }
+function populateVendorDropdowns() {
+    // Filter Generic
+    const select = document.getElementById('filter-procedure-vendor');
+    const currentVal = select.value;
+    select.innerHTML = '<option value="all">All Sellers</option>';
+
+    store.vendors.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.innerText = v.name;
+        select.appendChild(opt);
+    });
+    // Restore selection if possible
+    if (currentVal) select.value = currentVal;
+
+    // Modal Generic
+    const modalSelect = document.getElementById('proc-vendor');
+    const currentModalVal = modalSelect.value;
+    modalSelect.innerHTML = '<option value="">Selecciona un vendedor...</option>';
+
+    store.vendors.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id;
+        opt.innerText = v.name;
+        modalSelect.appendChild(opt);
+    });
+    if (currentModalVal) modalSelect.value = currentModalVal;
 }
 
 document.getElementById('add-procedure-btn').addEventListener('click', () => {
